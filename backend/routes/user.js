@@ -1,7 +1,8 @@
 const express = require("express");
 const userRouter = express.Router();
 const zod = require("zod");
-const {User} = require("../db");
+const {User, Account} = require("../db");
+
 const jwt = require("jsonwebtoken");
 const {JWT_SECRET}=require("../config");
 import authMiddleware from "../middleware"
@@ -40,6 +41,13 @@ const userId =  user._id;
 const token =jwt.sign({
     userId
 },JWT_SECRET)
+const rBalance = (1+Math.random())*10000
+
+await Account.create({
+    userId: userId,
+    balance: rBalance
+})
+
 
 res.json({
     message: "user created",
