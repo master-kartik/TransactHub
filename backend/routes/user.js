@@ -5,20 +5,20 @@ const {User, Account} = require("../db");
 
 const jwt = require("jsonwebtoken");
 const {JWT_SECRET}=require("../config");
-import authMiddleware from "../middleware"
+const {authMiddleware} = require("../middleware")
 
 const signupBody = zod.object({
     username: zod.string().email(),
-    firstname: zod.string(),
-    lastname: zod.string(),
+    firstName: zod.string(),
+    lastName: zod.string(),
     password: zod.string()
 })
 
 userRouter.post("/signup",async(req,res)=>{
-    const{sucess} = signupBody.safeParse(req.body)
-    if(!sucess){
+    const{success} = signupBody.safeParse(req.body)
+    if(!success){
         return res.status(411).json({
-            message: "email already taken/ incorrect inputs"
+            message: "ncorrect inputs"
         })
     }
     const existingUser = await User.findOne({
@@ -26,33 +26,33 @@ userRouter.post("/signup",async(req,res)=>{
     })
     if(existingUser){
         return res.status(411).json({
-            message: "email already taken/ incorrect inputs"
+            message: "email already taken"
         })
     }
     const user = await User.create({
         username : req.body.username,
         password : req.body.password,
-        firstname : req.body.firstname,
-        lastname : req.body.lastname,
+        firstName : req.body.firstName,
+        lastName : req.body.lastName,
+    })
+    const userId =  user._id;
+    
+    const token =jwt.sign({
+        userId
+    },JWT_SECRET)
+    const rBalance = (1+Math.random())*10000
+    
+    await Account.create({
+        userId: userId,
+        balance: rBalance
+    })
+    res.json({
+        message: "user created",
+        token: token
     })
 })
-const userId =  user._id;
-
-const token =jwt.sign({
-    userId
-},JWT_SECRET)
-const rBalance = (1+Math.random())*10000
-
-await Account.create({
-    userId: userId,
-    balance: rBalance
-})
 
 
-res.json({
-    message: "user created",
-    token: token
-})
 
 const signinBody = zod.object({
     username:zod.string().email(),
@@ -85,8 +85,8 @@ userRouter.post("/signin",async(req,res)=>{
     })
 })
 const updateBody = zod.object({
-    firstname: zod.string().optional(),
-    lastname: zod.string().optional(),
+    firstName: zod.string().optional(),
+    lastName: zod.string().optional(),
     password: zod.string().optional()
 })
 
